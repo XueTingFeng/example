@@ -1,6 +1,26 @@
 const path = require("path")
 const ESLintPlugin = require("eslint-webpack-plugin")
 const HtmlWebpackPlugin = require("html-webpack-plugin")
+const MiniCssExtractPlugin = require("mini-css-extract-plugin")
+const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
+
+const getStyleLoaders = (preProcessor) => {
+  return [
+    MiniCssExtractPlugin.loader,
+    "css-loader",
+    {
+      loader: "postcss-loader",
+      options: {
+        postcssOptions: {
+          plugins: [
+            "postcss-preset-env", // 能解决大多数样式兼容性问题
+          ],
+        },
+      },
+    },
+    preProcessor,
+  ].filter(Boolean)
+}
 
 module.exports = {
   //入口
@@ -19,40 +39,19 @@ module.exports = {
       //loader的配置
       {
         test: /\.css$/,
-        use: [
-          //执行顺序 从右到左(从下到上)
-          "style-loader", //将js中的css通过创建style标签添加到html标签中生效
-          "css-loader", //将css资源编写成common.js的模块到js中
-        ],
+        use: getStyleLoaders(),
       },
       {
         test: /\.less$/,
-        use: [
-          // compiles Less to CSS
-          "style-loader",
-          "css-loader",
-          "less-loader",
-        ],
+        use: getStyleLoaders("less-loader"),
       },
       {
         test: /\.s[ac]ss$/,
-        use: [
-          // 将 JS 字符串生成为 style 节点
-          "style-loader",
-          // 将 CSS 转化成 CommonJS 模块
-          "css-loader",
-          // 将 Sass 编译成 CSS
-          "sass-loader",
-        ],
+        use: getStyleLoaders("sass-loader"),
       },
       {
         test: /\.styl$/,
-        use: [
-          // compiles Less to CSS
-          "style-loader",
-          "css-loader",
-          "stylus-loader",
-        ],
+        use: getStyleLoaders("stylus-loader"),
       },
       {
         test: /\.(png|jpe?g|gif|wenp|svg)$/,
@@ -99,6 +98,10 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, "../public/index.html"),
     }),
+    new MiniCssExtractPlugin({
+      filename: "static/css/main.css",
+    }),
+    new CssMinimizerPlugin(),
   ],
   // 开发服务器
   devServer: {
