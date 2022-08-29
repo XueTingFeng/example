@@ -4,10 +4,16 @@
   <button @click="plusAsync(2)">plusAsync</button>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useCounterStore } from '@/store/count'
 
-const counter = useCounterStore()
+interface counter {
+  count: number
+  plusAsync: Function
+  $patch: Function
+}
+
+const counter: counter = useCounterStore()
 
 const plus = (num) => {
   counter.$patch({ count: counter.count + num })

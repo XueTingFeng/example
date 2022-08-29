@@ -1,6 +1,6 @@
 import { reactive, inject } from "vue"
 
-export function createPinia() {
+export function createPinia(): Object {
   return {
     install(app) {
       const store = reactive({})
@@ -22,9 +22,9 @@ export function createPinia() {
   }
 }
 
-export function defineStore(storeName, options) {
-  const store = reactive({})
-  const state = options.state()
+export function defineStore(storeName: string, options: any): Function {
+  const store: Object = reactive({})
+  const state: String | Number | Array<unknown> | Object = options.state()
   const actions = options.actions
 
   for (let key in state) {
@@ -35,11 +35,11 @@ export function defineStore(storeName, options) {
     store[method] = actions[method].bind(store)
   }
 
-  return function () {
-    const piniaStore = inject("piniaStore")
+  return function (): Object {
+    const piniaStore: Object = inject("piniaStore")
 
     if (!piniaStore[storeName]) {
-      const setSubStore = inject("setSubStore")
+      const setSubStore: Function = inject("setSubStore")
       setSubStore(storeName, store)
     }
 
