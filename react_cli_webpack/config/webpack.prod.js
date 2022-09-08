@@ -1,11 +1,15 @@
 const path = require("path")
 const ESLintPlugin = require("eslint-webpack-plugin")
 const HtmlWebpackPlugin = require("html-webpack-plugin")
-const ReactRefreshWebpackPlugin = require("@pmmmwh/react-refresh-webpack-plugin")
+const MinCssExtractPlugin = require("mini-css-extract-plugin")
+const CssMinimizerWebpackPlugin = require("css-minimizer-webpack-plugin")
+const TerserWebpackPlugin = require("terser-webpack-plugin")
+const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin")
+const CopyPlugin = require("copy-webpack-plugin")
 
 const getStyleLoaders = (preProcessor) => {
   return [
-    "style-loader",
+    MinCssExtractPlugin.loader,
     "css-loader",
     {
       loader: "postcss-loader",
@@ -23,10 +27,11 @@ const getStyleLoaders = (preProcessor) => {
 module.exports = {
   entry: "./src/main.js",
   output: {
-    path: undefined,
-    filename: "static/js/[name].js",
-    chunkFilename: "static/js/[name].chunk.js",
+    path: path.resolve(__dirname, "../dist"),
+    filename: "static/js/[name].[contenthash:10].js",
+    chunkFilename: "static/js/[name].[contenthash:10].chunk.js",
     assetModuleFilename: "static/media/[hash:10][ext][query]",
+    clean: true,
   },
   module: {
     rules: [
@@ -66,7 +71,7 @@ module.exports = {
         options: {
           cacheDirectory: true,
           cacheCompression: false,
-          plugins: ["react-refresh/babel"],
+          //plugins: ["react-refresh/babel"],
         },
       },
     ],
@@ -84,10 +89,24 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, "../public/index.html"),
     }),
-    new ReactRefreshWebpackPlugin(),
+    new MinCssExtractPlugin({
+      filename: "static/css/[name].[contenthash:10].css",
+      chunkFilename: "static/css/[name].[contenthash:10].chunk.css",
+    }),
+    new CopyPlugin({
+      patterns: [
+        {
+          from: path.resolve(__dirname, "../public"),
+          to: path.resolve(__dirname, "../dist"),
+          globOptions: {
+            ignore: ["**/index.html"],
+          },
+        },
+      ],
+    }),
   ],
-  mode: "development",
-  devtool: "cheap-module-source-map",
+  mode: "production",
+  devtool: "source-map",
   optimization: {
     splitChunks: {
       chunks: "all",
@@ -95,15 +114,39 @@ module.exports = {
     runtimeChunk: {
       name: (entrypoint) => `runtime~${entrypoint.name}.js`,
     },
+    minimizer: [
+      new CssMinimizerWebpackPlugin(),
+      new TerserWebpackPlugin(),
+      new ImageMinimizerPlugin({
+        minimizer: {
+          implementation: ImageMinimizerPlugin.imageminGenerate,
+          options: {
+            plugins: [
+              ["gifsicle", { interlaced: true }],
+              ["jpegtran", { progressive: true }],
+              ["optipng", { optimizationLevel: 5 }],
+              [
+                "svgo",
+                {
+                  plugins: [
+                    "preset-default",
+                    "prefixIds",
+                    {
+                      name: "sortAttrs",
+                      params: {
+                        xmlnsOrder: "alphabetical",
+                      },
+                    },
+                  ],
+                },
+              ],
+            ],
+          },
+        },
+      }),
+    ],
   },
   resolve: {
     extensions: [".jsx", ".js", ".json"],
-  },
-  devServer: {
-    host: "localhost",
-    port: 3002,
-    open: true,
-    hot: true,
-    historyApiFallback: true, //前端路由刷新404
   },
 }
