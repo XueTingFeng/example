@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script>
+    document.documentElement.style.fontSize = 
+    document.documentElement.clientWidth / 37.5 + 'px'
+  </script>
+
+  <style>
+    body{
+      margin: 0;
+    }
+
+    div{
+      display: flex;
+      flex-direction: column;
+    }
+
+    .blank-cell-group,
+    .char-cell-group
+    {
+      width:100%;
+      flex-direction: row;
+    }
+
+    .char-cell-group{
+      flex-wrap: wrap;
+    }
+
+    .blank-cell-group .cell-item,
+    .char-cell-group .cell-item
+    {
+      width: 25%;
+      height: 25vw;
+      padding: .5rem;
+      box-sizing: border-box;
+    }
+
+    .blank-cell-group .cell-item .wrapper,
+    .char-cell-group .cell-item .wrapper
+    {
+      width: 100%;
+      height: 100%;
+      border: .1rem solid #ddd;
+      box-sizing: border-box;
+    }
+
+    .char-cell-group .cell-item .wrapper{
+      background-color: orange;
+      border: none;
+      font-size: 3rem;
+      justify-content: center;
+      align-items: center;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="container">
+      <div class="blank-cell-group">
+        <div class="cell-item">
+          <div class="wrapper"></div>
+        </div>
+
+        <div class="cell-item">
+          <div class="wrapper"></div>
+        </div>
+
+        <div class="cell-item">
+          <div class="wrapper"></div>
+        </div>
+
+        <div class="cell-item">
+          <div class="wrapper"></div>
+        </div>
+      </div>
+
+      <div class="char-cell-group">
+        
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * <div class="cell-item">
+          <div class="wrapper">1</div>
+        </div>
+    */
+
+    //['诗情画意','南来北往','一团和气','落花流水']
+
+    (() => {
+      const idioms = ['诗情画意','南来北往','一团和气','落花流水'],
+            oCharCellGroup = document.querySelector('.char-cell-group'),
+            oBlanks = document.querySelectorAll('.blank-cell-group .wrapper')
+
+      let charCollection = [],
+          charAreas = [],
+          blankAreas = [],
+          resArr = [undefined,undefined,undefined,undefined],
+          oChars = null,
+          startX = 0,
+          startY = 0,
+          cellW = 0,
+          cellH = 0,
+          cellX = 0,
+          cellY = 0,
+          mouseX = 0,
+          mouseY = 0
+
+      const init = () => {
+        charCollection = formatCharArr()
+        render()
+
+        oChars = oCharCellGroup.querySelectorAll('.cell-item .wrapper')
+        getAreas(oBlanks,blankAreas)
+        getAreas(oChars,charAreas)
+        bindEvent()
+      }
+
+      //渲染
+      function render(){
+        let list = ''
+
+        charCollection.forEach((char,index) => {
+          list += charCellTpl(char,index)
+        })
+
+        oCharCellGroup.innerHTML = list
+      }
+
+      function bindEvent(){
+        let oChar = null
+
+        for(let i=0;i<oChars.length;i++){
+          oChar = oChars[i]
+
+          oChar.addEventListener('touchstart',handleTouchStart,false)
+          oChar.addEventListener('touchmove',handleTouchMove,false)
+          oChar.addEventListener('touchend',handleTouchEnd,false)
+        }
+      }
+
+      function handleTouchStart(e){
+        cellW = this.offsetWidth
+        cellH = this.offsetHeight
+        cellX = this.offsetLeft
+        cellY = this.offsetRight
+        startX = e.touches[0].clientX
+        startY = e.touches[0].clientY
+        mouseX = startX - cellX
+        mouseY = startY = cellY
+
+
+        this.style.width = cellW / 10 + 'rem'
+        this.style.height = cellH / 10 + 'rem'
+        this.style.position = 'fixed'
+        setPosition(this,{x:cellX,y:cellY})
+      }
+
+      function handleTouchMove(e){
+        e.preventDefault()
+
+        const moveX = e.touches[0].clientX,
+              moveY = e.touches[0].clientY
+
+        cellX = moveX - mouseX
+        cellY = moveY - mouseX
+
+        setPosition(this,{x:cellX,y:cellY})
+      }
+
+      function handleTouchEnd(e){
+
+        const blankWidth = oBlanks[0].offsetWidth,
+              blankHeight = oBlanks[0].offsetHeight
+
+        for(let i=0;i<blankAreas.length;i++){
+          if(resArr[i] !== undefined){
+            continue
+          }
+
+          let { startX, startY } =  blankAreas[i]
+
+          if(
+            (
+              cellX > startX &&
+              cellX < startX + blankWidth / 2 &&
+              cellY > startY &&
+              cellY < startY + blankHeight / 2
+            ) ||
+            (
+              cellX + blankWidth > startX + blankWidth / 2 &&
+              cellX + blankWidth < startX + blankWidth &&
+              cellY > startY &&
+              cellY < startY + blankHeight / 2 
+            )
+          ){
+            setPosition(this,{x:startX,y:startY})
+            setResArr(this,i)
+
+            console.log(resArr.includes(undefined))
+            console.log(resArr)
+
+            if(!resArr.includes(undefined)){
+              setTimeout(() => {
+                if(!checkResult()){
+                alert('错误')
+              } else {
+                alert('正确')
+              }
+              resetPosition()
+              },1000)
+            }
+            return
+          }
+        }
+
+        const _index = Number(this.dataset.index), 
+              charArea = charAreas[_index]
+
+              setPosition(this,{x:charArea.startX,y:charArea.startY})
+      }
+
+      function getAreas(domCollection,arrWrapper){
+        let startX = 0,
+            startY = 0
+            oItem = null
+
+        for(let i=0;i<domCollection.length;i++){
+          oItem = domCollection[i]
+          startX = oItem.offsetLeft
+          startY = oItem.offsetTop
+
+          arrWrapper.push({
+            startX,
+            startY
+          })
+        }
+      }
+
+      //格式化数组，返回随机字符
+      function formatCharArr(){
+        let _arr = []
+
+        idioms.forEach(item => {
+          _arr = _arr.concat(item.split(''))
+        })
+
+        return _arr.sort(randdomSort)
+      }
+
+      //随机方法
+      function randdomSort(){
+        return Math.random() > 0.5 ? -1 : 1
+      }
+
+      //返回html模板
+      function charCellTpl(char,index){
+        return(
+          `
+          <div class="cell-item">
+            <div class="wrapper" data-index="${ index }">${ char }</div>
+          </div>
+          `
+        )
+      }
+
+      function setPosition(el,{ x, y }){
+        el.style.left = x / 10 + 'rem'
+        el.style.top = y / 10 + 'rem'
+      }
+
+      function setResArr(el,index){
+        resArr[index] = {
+          char: el.innerText,
+          el
+        }
+      }
+
+      function resetPosition(){
+        resArr.forEach(item => {
+          const el = item.el,
+                index = Number(el.dataset.index),
+                {startX,startY} = charAreas[index]
+
+                setPosition(el,{x:startX,y:startY})
+        })
+
+          resArr = []
+          startX = 0
+          startY = 0
+          cellW = 0
+          cellH = 0
+          cellX = 0
+          cellY = 0
+          mouseX = 0
+          mouseY = 0
+      }
+
+      function checkResult(){
+        let idiom = ''
+
+        resArr.forEach(item => {
+          idiom += item.char
+        })
+
+        return idioms.find(item => item === idiom)
+      }
+
+      init()
+    })()
+
+    
+  </script>
+</body>
+</html>
