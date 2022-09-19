@@ -1,5 +1,5 @@
 <template>
-    <h1 class="title">
+    <h1 class="about-title">
         hello app
     </h1>
     <!-- <Home/> -->
@@ -13,7 +13,7 @@ export default {
 </script>
 
 <style>
-.title{
-    color:black;
+.about-title {
+    color: yellow;
 }
 </style>
