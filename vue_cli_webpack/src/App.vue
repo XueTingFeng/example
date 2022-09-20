@@ -16,18 +16,25 @@
     <router-view></router-view>
 </template>
 
-<script>
-
-export default {
-    name: "App",
-    components:{
-        //Home
+<script setup>
+function test() {
+    let arr = []
+    for (var i = 0; i < 10; i++) {
+        arr[i] = function () {
+            console.log(i)
+        }
     }
+    return arr
+}
+
+let arr = test()
+for (let j = 0; j < 10; j++) {
+    arr[j]()
 }
 </script>
 
 <style>
-.title{
-    color:pink;
+.title {
+    color: pink;
 }
 </style>
