@@ -8,14 +8,63 @@
   </head>
   <body>
     <script>
-      class Test {
-        static getTest() {
-          console.log("111")
+      // class Test {
+      //   static getTest() {
+      //     console.log("111")
+      //   }
+      // }
+
+      // console.log(new Test())
+      // Test.getTest()
+
+      const pathSum = function (root, targetSum) {
+        const res = []
+        const travelsal = (node, cnt, path) => {
+          if (!node.left && !node.right && cnt === 0) {
+            res.push([...path])
+            return
+          }
+          if (!node.left && !node.right) return
+
+          if (node.left) {
+            path.push(node.left.val)
+            travelsal(node.left, cnt - node.left.val, path)
+            path.pop()
+          }
+
+          if (node.right) {
+            path.push(node.right.val)
+            travelsal(node.right, cnt - node.right.val, path)
+            path.pop()
+          }
+
+          return
         }
+
+        if (!root) return res
+        travelsal(root, targetSum - root.val, [root.val])
+        return res
       }
 
-      console.log(new Test())
-      Test.getTest()
+      function TreeNode(val, left, right) {
+        this.val = val === undefined ? 0 : val
+        this.left = left === undefined ? null : left
+        this.right = right === undefined ? null : right
+      }
+      const tree9 = new TreeNode(1)
+      const tree8 = new TreeNode(5)
+      const tree7 = new TreeNode(4, tree8, tree9)
+      const tree6 = new TreeNode(13)
+      const tree5 = new TreeNode(2)
+      const tree4 = new TreeNode(7)
+      const tree3 = new TreeNode(11, tree4, tree5)
+      const tree1 = new TreeNode(4, tree3)
+      const tree2 = new TreeNode(8, tree6, tree7)
+
+      const root = new TreeNode(5, tree1, tree2)
+
+      const res = pathSum(root, 22)
+      console.log(res)
     </script>
   </body>
 </html>
