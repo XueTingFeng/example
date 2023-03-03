@@ -22,14 +22,14 @@ const sidebar = {
 
   export default config
 
-  module.exports = {
-    markdown: {
-      config: (md) => {
-        // 添加DemoBlock插槽
-        const { demoBlockPlugin } = require('vitepress-theme-demoblock')
-        md.use(demoBlockPlugin)
-      }
-    }
-  }
+  // module.exports = {
+  //   markdown: {
+  //     config: (md) => {
+  //       // 添加DemoBlock插槽
+  //       const { demoBlockPlugin } = require('vitepress-theme-demoblock')
+  //       md.use(demoBlockPlugin)
+  //     }
+  //   }
+  // }
 
 
